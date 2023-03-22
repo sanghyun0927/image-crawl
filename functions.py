@@ -226,7 +226,7 @@ def get_images_from_chachacha(driver, delay, max_images, down_path):
 
 
 def get_images_from_bobae(driver, delay, max_images, down_path):
-    driver.get("https://www.bobaedream.co.kr/cyber/CyberCar.php?sel_m_gubun=ALL&page=11&order=S11&view_size=70")
+    driver.get("https://www.bobaedream.co.kr/cyber/CyberCar.php?sel_m_gubun=ALL&page=31&order=S11&view_size=70")
     url = driver.current_url
     driver.get(url)
 
@@ -236,18 +236,25 @@ def get_images_from_bobae(driver, delay, max_images, down_path):
     assert len(driver.window_handles) == 1
 
     image_urls = set()
+    for k in range(1, 1891):
+        image_urls.add(str(k))
     skips = 0
+
     for _ in range(10):
         for i in range(3, 12):
             driver.switch_to.window(original_window)
-            driver.find_element(By.XPATH, f'//*[@id="listCont"]/div[2]/div/a[{i}]').click()
             time.sleep(delay)
+            bnt = driver.find_element(By.XPATH, f'//*[@id="listCont"]/div[2]/div/a[{i}]')
+            actions = ActionChains(driver, duration=5000)
+            actions.move_to_element(bnt).click().perform()
+            time.sleep(delay)
+
             thumbnails = driver.find_elements(By.CLASS_NAME, "img.w132")
 
             for img in thumbnails:    #[len(image_urls) + skips:max_images]
                 try:
                     img.click()
-                    time.sleep(delay)
+                    # time.sleep(delay)
                 except:
                     continue
 
@@ -267,7 +274,7 @@ def get_images_from_bobae(driver, delay, max_images, down_path):
                             skips += 1
                             break
 
-                        is_src = image.get_attribute('src') in image.get_attribute('src')  # and 'http'
+                        is_src = image.get_attribute('src')  # and 'http'
                         # time.sleep(delay)
 
                         if is_src:
@@ -280,10 +287,8 @@ def get_images_from_bobae(driver, delay, max_images, down_path):
                                 break
                         print(f"Found {len(image_urls)}")
                     driver.close()
-
         driver.switch_to.window(original_window)
-        driver.find_element(By.CLASS_NAME, 'next').click()
-        original_window = driver.current_window_handle
+        driver.find_element(By.CLASS_NAME, "next").click()
 
     return image_urls
 
