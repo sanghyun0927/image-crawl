@@ -23,7 +23,10 @@ driver = webdriver.Chrome(chrome_options=options, service=service)
 # ]
 
 # driver.find_elements(By.ID, value="yDmH0d")[0].click()
-urls = get_images_from_bobae(driver, 2, 0, './img_crawled/')
+urls = get_images_from_bakcha(driver, 2, 0, './img_crawled/')
 
-
-start_page = ["https://charancha.com/bu/sell/list", "https://www.kbchachacha.com/public/search/main.kbc#!?_menu=buy&page=1&sort=-orderDate", "https://www.bobaedream.co.kr/cyber/CyberCar.php?sel_m_gubun=ALL"]
+start_page = ["https://charancha.com/bu/sell/list",
+              "https://www.kbchachacha.com/public/search/main.kbc#!?_menu=buy&page=1&sort=-orderDate",
+              "https://www.bobaedream.co.kr/cyber/CyberCar.php?sel_m_gubun=ALL",
+              "https://biz.bakcha.com/pages#/product",
+              ]

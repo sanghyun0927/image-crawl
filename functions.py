@@ -265,7 +265,13 @@ def get_images_from_bobae(driver, delay, max_images, down_path):
 
                     images = []
                     for idx in range(1, 4):
-                        image = driver.find_element(By.XPATH, f'//*[@id="imgPos"]/li[{idx}]/a/img')
+                        try:
+                            start = time.time()
+                            image = driver.find_element(By.XPATH, f'//*[@id="imgPos"]/li[{idx}]/a/img')
+                            if time.time() - start > 30:
+                                raise Exception("")
+                        except:
+                            continue
                         images.append(image)
 
                     for image in images:  # image = images[0]
@@ -281,6 +287,88 @@ def get_images_from_bobae(driver, delay, max_images, down_path):
                             image_urls.add(image.get_attribute('src'))
                             try:
                                 download_image(down_path, url=image.get_attribute('src'),
+                                               file_name=str(len(image_urls)) + '.png',
+                                               image_type='PNG', verbose=True)
+                            except:
+                                break
+                        print(f"Found {len(image_urls)}")
+                    driver.close()
+        driver.switch_to.window(original_window)
+        driver.find_element(By.CLASS_NAME, "next").click()
+
+    return image_urls
+
+def get_images_from_bakcha(driver, delay, max_images, down_path):
+    driver.get("https://biz.bakcha.com/pages#/product")
+    url = driver.current_url
+    driver.get(url)
+    driver.find_element(By.XPATH, '//*[@id="Cars"]/div/div[2]/div[2]/div[1]/ul/li[4]').click()
+    driver.find_element(By.XPATH, '//*[@id="Cars"]/div/div[2]/div[2]/div[1]/ul/li[1]').click()
+    original_window = driver.current_window_handle
+
+    # Check we don't have other windows open already
+    assert len(driver.window_handles) == 1
+
+    image_urls = set()
+    for k in range(1, 367*4):
+        image_urls.add(str(k))
+    skips = 0
+
+    for _ in range(2):
+        for i in range(2, 12):
+            driver.switch_to.window(original_window)
+            time.sleep(delay)
+            bnt = driver.find_element(By.XPATH, f'//*[@id="Cars"]/div/div[2]/div[2]/div[4]/ul/li[{i}]/button')
+            actions = ActionChains(driver, duration=5000)
+            actions.move_to_element(bnt).click().perform()
+            time.sleep(delay)
+
+            thumbnail = driver.find_elements(By.CLASS_NAME, "car-model.ng-binding")
+
+            for j in range(1,21):    #[len(image_urls) + skips:max_images]
+                try:
+                    driver.switch_to.window(original_window)
+                    car_detail = driver.find_element(By.XPATH, f'//*[@id="Cars"]/div/div[2]/div[2]/ul/li[{j}]/div[1]').get_attribute('button-car-detail')
+                    new_url = f'{url}/{car_detail}'
+
+                    # Open a new window
+                    driver.execute_script("window.open('');")
+
+                    # Switch to the new window and open new URL
+                    driver.switch_to.window(driver.window_handles[j])
+                    driver.get(new_url)
+                except:
+                    continue
+
+            # Loop through until we find a new window handle
+            for window_handle in driver.window_handles:
+                if window_handle != original_window:
+                    driver.switch_to.window(window_handle)
+
+                    images = []
+                    for idx in range(1, 5):
+                        try:
+                            start = time.time()
+                            image = driver.find_element(By.XPATH, f'//*[@id="CarDetail"]/div[11]/div[2]/section[1]/div[1]/div[1]/figure[{idx}]/a')
+                            if time.time() - start > 30:
+                                raise Exception("")
+                        except:
+                            continue
+                        images.append(image)
+
+                    for image in images:  # image = images[0]
+                        if image.get_attribute('href') in image_urls:
+                            max_images += 1
+                            skips += 1
+                            break
+
+                        is_src = image.get_attribute('href')  # and 'http'
+                        # time.sleep(delay)
+
+                        if is_src:
+                            image_urls.add(image.get_attribute('href'))
+                            try:
+                                download_image(down_path, url=image.get_attribute('href'),
                                                file_name=str(len(image_urls)) + '.png',
                                                image_type='PNG', verbose=True)
                             except:
